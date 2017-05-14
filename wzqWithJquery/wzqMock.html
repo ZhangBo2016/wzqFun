@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>jquery五子棋游戏 -</title>
     <link rel="stylesheet" type="text/css" href="./wzq.css">
-    <script type="text/javascript" src="../libs/js/jquery-1.7.2.js"></script>js
+    <script type="text/javascript" src="../libs/js/jquery-1.7.2.js"></script>
     <script type="text/javascript" src="./wzq.js"></script>
 </head>
 <body>
@@ -255,34 +255,18 @@
     </div>
 
     <div class="operating-panel">
-        <p>
-            <a id="black_btn" class="btn selected" href="#">黑&nbsp;&nbsp;子</a>
-            <a id="white_btn" class="btn" href="#">白&nbsp;&nbsp;子</a>
+        <p id="model">
+            <a id="withPersons_btn" class="btn selected" href="#">人 人</a>
+            <a id="withAI_btn" class="btn" href="#">人 机</a>
         </p>
         <p>
-            <a id="first_move_btn" class="btn selected" href="#">先&nbsp;&nbsp;手</a>
-            <a id="second_move_btn" class="btn" href="#">后&nbsp;&nbsp;手</a>
+            <a id="black_btn" class="btn selected" href="#">黑&nbsp;&nbsp;方</a>
+            <a id="white_btn" class="btn" href="#">白&nbsp;&nbsp;方</a>
         </p>
-        <a id="replay_btn" class="btn" href="#">开&nbsp;&nbsp;&nbsp;始</a>
-        <p id="result_info">胜率：100%</p>
-        <p id="result_tips"></p>
-    </div>
 
-    <div style="display: none">
-        <!-- 图片需合并 减少http请求数 -->
-        <img src="http://sandbox.runjs.cn/uploads/rs/102/r2dy3tyw/black.png" alt="preload"/>
-        <img src="http://sandbox.runjs.cn/uploads/rs/102/r2dy3tyw/white.png" alt="preload"/>
-        <img src="http://sandbox.runjs.cn/uploads/rs/102/r2dy3tyw/hover.png" alt="preload"/>
-        <img src="http://sandbox.runjs.cn/uploads/rs/102/r2dy3tyw/hover_up.png" alt="preload"/>
-        <img src="http://sandbox.runjs.cn/uploads/rs/102/r2dy3tyw/hover_down.png" alt="preload"/>
-        <img src="http://sandbox.runjs.cn/uploads/rs/102/r2dy3tyw/hover_up_left.png" alt="preload"/>
-        <img src="http://sandbox.runjs.cn/uploads/rs/102/r2dy3tyw/hover_up_right.png" alt="preload"/>
-        <img src="http://sandbox.runjs.cn/uploads/rs/102/r2dy3tyw/hover_left.png" alt="preload"/>
-        <img src="http://sandbox.runjs.cn/uploads/rs/102/r2dy3tyw/hover_right.png" alt="preload"/>
-        <img src="http://sandbox.runjs.cn/uploads/rs/102/r2dy3tyw/hover_down_left.png" alt="preload"/>
-        <img src="http://sandbox.runjs.cn/uploads/rs/102/r2dy3tyw/hover_down_right.png" alt="preload"/>
-        <img src="http://sandbox.runjs.cn/uploads/rs/102/r2dy3tyw/black_last.png" alt="preload"/>
-        <img src="http://sandbox.runjs.cn/uploads/rs/102/r2dy3tyw/white_last.png" alt="preload"/>
+        <!--<label>默认黑方为先手</label>-->
+        <a id="replay_btn" class="btn" href="#">开&nbsp;&nbsp;&nbsp;始</a>
+        <p id="result_tips"></p>
     </div>
 </div>
 </body>

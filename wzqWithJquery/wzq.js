@@ -90,7 +90,7 @@ var fiveChess = (function () {
         //鼠标在棋盘上移动效果
         $("div.chessboard div").hover(
             function () {
-                if (!isPlayerTurn || isGameOver) { return; }
+                if (isPlayWithAI && !isPlayerTurn || isGameOver) { return; }
                 var index = $(this).index(),
                     i = index / 15 | 0,
                     j = index % 15;
@@ -125,7 +125,7 @@ var fiveChess = (function () {
                 }
             },
             function () {
-                if (!isPlayerTurn || isGameOver) { return; }
+                if (isPlayWithAI && !isPlayerTurn || isGameOver) { return; }
                 var index = $(this).index(),
                     i = index / 15 | 0,
                     j = index % 15;
@@ -157,7 +157,11 @@ var fiveChess = (function () {
                     $(this).removeClass("hover");
                 }
             }
-        )
+        );
+        //选择对战模式：人人对战 / 人机对战
+        $("#model").on("click", function (e) {
+            debugger
+        })
     };
 
     var gameStart = function () {
@@ -450,11 +454,233 @@ var fiveChess = (function () {
         $("div.chessboard div:eq(" + pos + ")").removeClass(color).addClass(color + "-last");
     };
 
+    //AI下棋
+    var AImoveChess = function () {
+        isPlayerTurn = false;
+        var maxX = 0,
+            maxY = 0,
+            maxWeight = 0,
+            i, j, tem;
+        for (i = 14; i >= 0; i--) {
+            for (j = 14; j >= 0; j--) {
+                if (chessArr[i][j] !== NO_CHESS) {
+                    continue;
+                }
+                tem = computeWeight(i, j);
+                if (tem > maxWeight) {
+                    maxWeight = tem;
+                    maxX = i;
+                    maxY = j;
+                }
+            }
+        }
+        playChess(maxX, maxY, AIPlayer);
+        AILastChess = [maxX, maxY];
+        if ((maxWeight >= 100000 && maxWeight < 250000) || (maxWeight >= 500000)) {
+            showResult(false);
+            gameOver();
+        }
+        else {
+            isPlayerTurn = true;
+        }
+    };
+
+    //下子到i，j X方向 结果: 多少连子 两边是否截断
+    var putDirectX = function (i, j, chessColor) {
+        var m, n,
+            nums = 1,
+            side1 = false,
+            side2 = false;
+        for (m = j - 1; m >= 0; m--) {
+            if (chessArr[i][m] === chessColor) {
+                nums++;
+            }
+            else {
+                if (chessArr[i][m] === NO_CHESS) {
+                    side1 = true;
+                }
+                break;
+            }
+        }
+        for (m = j + 1; m < 15; m++) {
+            if (chessArr[i][m] === chessColor) {
+                nums++;
+            }
+            else {
+                if (chessArr[i][m] === NO_CHESS) {
+                    side2 = true;
+                }
+                break;
+            }
+        }
+        return {"nums": nums, "side1": side1, "side2": side2};
+    };
+    //下子到i，j Y方向 结果
+    var putDirectY = function (i, j, chessColor) {
+        var m, n,
+            nums = 1,
+            side1 = false,
+            side2 = false;
+        for (m = i - 1; m >= 0; m--) {
+            if (chessArr[m][j] === chessColor) {
+                nums++;
+            }
+            else {
+                if (chessArr[m][j] === NO_CHESS) {
+                    side1 = true;
+                }
+                break;
+            }
+        }
+        for (m = i + 1; m < 15; m++) {
+            if (chessArr[m][j] === chessColor) {
+                nums++;
+            }
+            else {
+                if (chessArr[m][j] === NO_CHESS) {
+                    side2 = true;
+                }
+                break;
+            }
+        }
+        return {"nums": nums, "side1": side1, "side2": side2};
+    };
+    //下子到i，j XY方向 结果
+    var putDirectXY = function (i, j, chessColor) {
+        var m, n,
+            nums = 1,
+            side1 = false,
+            side2 = false;
+        for (m = i - 1, n = j - 1; m >= 0 && n >= 0; m--, n--) {
+            if (chessArr[m][n] === chessColor) {
+                nums++;
+            }
+            else {
+                if (chessArr[m][n] === NO_CHESS) {
+                    side1 = true;
+                }
+                break;
+            }
+        }
+        for (m = i + 1, n = j + 1; m < 15 && n < 15; m++, n++) {
+            if (chessArr[m][n] === chessColor) {
+                nums++;
+            }
+            else {
+                if (chessArr[m][n] === NO_CHESS) {
+                    side2 = true;
+                }
+                break;
+            }
+        }
+        return {"nums": nums, "side1": side1, "side2": side2};
+    };
+    var putDirectYX = function (i, j, chessColor) {
+        var m, n,
+            nums = 1,
+            side1 = false,
+            side2 = false;
+        for (m = i - 1, n = j + 1; m >= 0 && n < 15; m--, n++) {
+            if (chessArr[m][n] === chessColor) {
+                nums++;
+            }
+            else {
+                if (chessArr[m][n] === NO_CHESS) {
+                    side1 = true;
+                }
+                break;
+            }
+        }
+        for (m = i + 1, n = j - 1; m < 15 && n >= 0; m++, n--) {
+            if (chessArr[m][n] === chessColor) {
+                nums++;
+            }
+            else {
+                if (chessArr[m][n] === NO_CHESS) {
+                    side2 = true;
+                }
+                break;
+            }
+        }
+        return {"nums": nums, "side1": side1, "side2": side2};
+    };
+
+    //计算下子至i,j的权重
+    var computeWeight = function (i, j) {
+        var weight = 14 - (Math.abs(i - 7) + Math.abs(j - 7)), //基于棋盘位置权重
+            pointInfo = {},	//某点下子后连子信息
+            chessColor = AIPlayer === "black" ? BLACK_CHESS : WHITE_CHESS;
+        //x方向
+        pointInfo = putDirectX(i, j, chessColor);
+        weight += weightStatus(pointInfo.nums, pointInfo.side1, pointInfo.side2, true);//AI下子权重
+        pointInfo = putDirectX(i, j, -chessColor);
+        weight += weightStatus(pointInfo.nums, pointInfo.side1, pointInfo.side2, false);//player下子权重
+        //y方向
+        pointInfo = putDirectY(i, j, chessColor);
+        weight += weightStatus(pointInfo.nums, pointInfo.side1, pointInfo.side2, true);//AI下子权重
+        pointInfo = putDirectY(i, j, -chessColor);
+        weight += weightStatus(pointInfo.nums, pointInfo.side1, pointInfo.side2, false);//player下子权重
+        //左斜方向
+        pointInfo = putDirectXY(i, j, chessColor);
+        weight += weightStatus(pointInfo.nums, pointInfo.side1, pointInfo.side2, true);//AI下子权重
+        pointInfo = putDirectXY(i, j, -chessColor);
+        weight += weightStatus(pointInfo.nums, pointInfo.side1, pointInfo.side2, false);//player下子权重
+        //右斜方向
+        pointInfo = putDirectYX(i, j, chessColor);
+        weight += weightStatus(pointInfo.nums, pointInfo.side1, pointInfo.side2, true);//AI下子权重
+        pointInfo = putDirectYX(i, j, -chessColor);
+        weight += weightStatus(pointInfo.nums, pointInfo.side1, pointInfo.side2, false);//player下子权重
+        return weight;
+    };
+    //权重方案   独：两边为空可下子，单：一边为空
+    var weightStatus = function (nums, side1, side2, isAI) {
+        var weight = 0;
+        switch (nums) {
+            case 1:
+                if (side1 && side2) {
+                    weight = isAI ? 15 : 10;	//独一
+                }
+                break;
+            case 2:
+                if (side1 && side2) {
+                    weight = isAI ? 100 : 50;	//独二
+                }
+                else if (side1 || side2) {
+                    weight = isAI ? 10 : 5;	//单二
+                }
+                break;
+            case 3:
+                if (side1 && side2) {
+                    weight = isAI ? 500 : 200;	//独三
+                }
+                else if (side1 || side2) {
+                    weight = isAI ? 30 : 20;	//单三
+                }
+                break;
+            case 4:
+                if (side1 && side2) {
+                    weight = isAI ? 5000 : 2000;	//独四
+                }
+                else if (side1 || side2) {
+                    weight = isAI ? 400 : 100;	//单四
+                }
+                break;
+            case 5:
+                weight = isAI ? 100000 : 10000;	//五
+                break;
+            default:
+                weight = isAI ? 500000 : 250000;
+                break;
+        }
+        return weight;
+    };
+
     return {
         init: function() {
             chessBoardHtml = $("div.chessboard").html();
 
             var menu_Command = function (receiver) {
+
                 return function(){
                     receiver.execute()
                 }
@@ -462,21 +688,23 @@ var fiveChess = (function () {
             var black_btn = {
                 execute: function(){
                     humanPlayer = "black";
+                    isPlayerTurn = true;
                 }
             };
             var white_btn = {
                 execute: function(){
                     humanPlayer = "white";
-                }
-            };
-            var first_move_btn = {
-                execute: function(){
-                    isPlayerTurn = true;
-                }
-            };
-            var second_move_btn = {
-                execute: function(){
                     isPlayerTurn = false;
+                }
+            };
+            var withPersons_btn = {
+                execute: function(){
+                    isPlayWithAI = false;
+                }
+            };
+            var withAI_btn = {
+                execute: function(){
+                    isPlayWithAI = true;
                 }
             };
             var replay_btn = {
@@ -494,8 +722,15 @@ var fiveChess = (function () {
             $(".operating-panel a").click(function (event) {
                 event.preventDefault();
                 var id = $(this).attr("id");
+                var map = {
+                    black_btn: black_btn,
+                    white_btn: white_btn,
+                    withPersons_btn: withPersons_btn,
+                    withAI_btn:withAI_btn,
+                    replay_btn:replay_btn
+                };
                 if (isGameStart && id !== "replay_btn" ) { return; }	//正在游戏 不操作
-                menu_Command(id)();
+                menu_Command(map[id])();
                 if (id !== "replay_btn") {
                     $(this).addClass("selected").siblings().removeClass("selected");
                 }
