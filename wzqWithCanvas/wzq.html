@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>五子棋游戏</title>
+    <link rel="stylesheet" type="text/css" href="./wzq.css">
+    <script type="text/javascript" src="../libs/js/jquery-1.7.2.js"></script>
+    <script type="text/javascript" src="./wzq.js"></script>
+</head>
+<body onload="startLoad()" style="padding:0px;margin:0px">
+<canvas width="1024" id="canvas" onmousedown="play(event)" height="768">
+</canvas>
+<div class="operating-panel">
+    <p id="model">
+        <a id="withPersons_btn" class="btn selected" href="#">人 人</a>
+        <a id="withAI_btn" class="btn" href="#">人 机</a>
+    </p>
+    <p>
+        <a id="pre_btn" class="btn" href="#">悔 棋</a>
+    </p>
+    <!--<label>默认黑方为先手</label>-->
+    <a id="replay_btn" class="btn" href="#">再来一局</a>
+    <p id="result_tips"></p>
+</div>
+</body>
+
+</html>
