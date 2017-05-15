@@ -3,8 +3,7 @@
   "version": "0.0.0",
   "description": "A vue project.",
   "private": true,
-  "keywords": [
-  ],
+  "keywords": [],
   "scripts": {
     "dev": "cooking watch -p",
     "dist": "cooking build -p",
@@ -16,6 +15,10 @@
     "babel-polyfill": "*"
   },
   "devDependencies": {
-    "cooking-vue2": "*"
+    "cooking-sass": "^0.5.0",
+    "cooking-vue2": "*",
+    "css-loader": "^0.28.1",
+    "jquery": "^3.2.1",
+    "webpack": "^2.5.1"
   }
 }
