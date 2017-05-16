@@ -13,8 +13,7 @@
     </div>
 </template>
 
-<script>
-
+<script type="text/ecmascript-6">
     export default {
         data:function(){
             return {
@@ -25,18 +24,23 @@
                 BLACK_CHESS : -1,
                 WHITE_CHESS : 1,
                 LEFT : "black",
-                RIGHT : "white"
+                currrentColor:"black",
+                RIGHT : "white",
+                isBlack: true,
+                players: ["player", "player"],
+                playDirector: null,
             }
         },
         mounted: function(){
+            this.playDirector = this.playDirectorHandler();
             this.$nextTick(function(){
-                this.startLoad()
+                this.startLoad();
             })
         },
         methods: {
             setCurrentPos(td){
-                  this.posX = $(td).index();
-                  this.posY = $(td).parent().index();
+                this.posX = $(td).index();
+                this.posY = $(td).parent().index();
             },
             startLoad(){
                 const self = this;
@@ -46,7 +50,8 @@
                     for (j = 0; j < 15; j++) {
                         self.chessArr[i][j] = self.NO_CHESS;
                     }
-                };
+                }
+                ;
 
                 $("td").hover(
                         function () {
@@ -56,54 +61,85 @@
                             self.hoverHandler(this, "remove");
                         }
                 );
+
+
+            },
+            gameStart () {
+                if (this.players[0] == "AI") {
+                    // AImoveChess();
+                    console.log("ai chess")
+                }
+                // $(".operating-panel p a").addClass("disable");
             },
             hoverHandler(dom, behaveior){
-                    const i = $(dom).index(), j = $(dom).parent().index(),
-                           flag = behaveior == "add";
+                const i = $(dom).index(), j = $(dom).parent().index(),
+                        flag = behaveior == "add";
 
-                    if (this.chessArr[i][j] === this.NO_CHESS) {
-                        if (i === 0 && j === 0) {
-                            flag ? $(dom).addClass("hover-up-left") : $(dom).removeClass("hover-up-left");
-                        }
-                        else if (i === 0 && j === 14) {
-                            flag ? $(dom).addClass("hover-up-right") : $(dom).removeClass("hover-up-right");
-                        }
-                        else if (i === 14 && j === 0) {
-                            flag ? $(dom).addClass("hover-down-left"): $(dom).removeClass("hover-down-left")
-                        }
-                        else if (i === 14 && j === 14) {
-                            flag ? $(dom).addClass("hover-down-right"): $(dom).removeClass("hover-down-right");
-                        }
-                        else if (i === 0) {
-                            flag ? $(dom).toggleClass("hover-up") : $(dom).removeClass("hover-up");
-                        }
-                        else if (i === 14) {
-                            flag ? $(dom).toggleClass("hover-down") :$(dom).removeClass("hover-down");
-                        }
-                        else if (j === 0) {
-                            flag ? $(dom).toggleClass("hover-left") : $(dom).removeClass("hover-left");
-                        }
-                        else if (j === 14) {
-                            flag ? $(dom).toggleClass("hover-right") : $(dom).removeClass("hover-right");
-                        }
-                        else {
-                            flag ? $(dom).toggleClass("hover") : $(dom).removeClass("hover");
-                        }
+                if (this.chessArr[i][j] === this.NO_CHESS) {
+                    if (i === 0 && j === 0) {
+                        flag ? $(dom).addClass("hover-up-left") : $(dom).removeClass("hover-up-left");
                     }
-             },
+                    else if (i === 0 && j === 14) {
+                        flag ? $(dom).addClass("hover-up-right") : $(dom).removeClass("hover-up-right");
+                    }
+                    else if (i === 14 && j === 0) {
+                        flag ? $(dom).addClass("hover-down-left") : $(dom).removeClass("hover-down-left")
+                    }
+                    else if (i === 14 && j === 14) {
+                        flag ? $(dom).addClass("hover-down-right") : $(dom).removeClass("hover-down-right");
+                    }
+                    else if (i === 0) {
+                        flag ? $(dom).toggleClass("hover-up") : $(dom).removeClass("hover-up");
+                    }
+                    else if (i === 14) {
+                        flag ? $(dom).toggleClass("hover-down") : $(dom).removeClass("hover-down");
+                    }
+                    else if (j === 0) {
+                        flag ? $(dom).toggleClass("hover-left") : $(dom).removeClass("hover-left");
+                    }
+                    else if (j === 14) {
+                        flag ? $(dom).toggleClass("hover-right") : $(dom).removeClass("hover-right");
+                    }
+                    else {
+                        flag ? $(dom).toggleClass("hover") : $(dom).removeClass("hover");
+                    }
+                }
+            },
             play(e) {
                 const dom = e.target;
                 const i = $(dom).index(), j = $(dom).parent().index();
 
                 if (this.chessArr[i][j] === this.NO_CHESS) {
                     this.hoverHandler(dom, "remove");
-                    this.playChess(i, j, "black");
+                    this.playDirector.receiverMessage("color");
+                    this.playChess(i, j, this.currrentColor);
                 }
             },
             playChess(i, j, color){
-                 this.chessArr[i][j] = color === this.LEFT ? this.BLACK_CHESS : this.WHITE_CHESS;
-                    $("table.transparent tr:eq(" + j+ ") td:eq("+ i +")").addClass(color);
-           }
+                this.chessArr[i][j] = color === this.LEFT ? this.BLACK_CHESS : this.WHITE_CHESS;
+                $("table.transparent tr:eq(" + j + ") td:eq(" + i + ")").addClass(color);
+            },
+            playDirectorHandler(){
+                let operations = {};
+                const self = this;
+                operations.color = function () {
+                    if(self.players.indexOf("AI") < 0 ){
+                        self.currrentColor == self.LEFT ? self.currrentColor = self.RIGHT: self.currrentColor=self.LEFT;
+                    }
+                };
+
+                const receiverMessage = function () {
+                    const message = Array.prototype.shift.call(arguments);
+                    operations[message].apply(this, arguments)
+                };
+
+                return {
+                    receiverMessage: receiverMessage
+                }
+            },
+            AIplay(){
+
+            }
         }
     }
 </script>
