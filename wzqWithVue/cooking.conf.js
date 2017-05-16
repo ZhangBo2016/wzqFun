@@ -1,5 +1,6 @@
 var path = require('path');
 var cooking = require('cooking');
+var webpack = require('webpack')
 
 cooking.set({
   entry: {
@@ -28,9 +29,16 @@ cooking.set({
   static: true,
   extractCSS: '[name].[contenthash:7].css',
   alias: {
-    'src': path.join(__dirname, 'src')
+    'src': path.join(__dirname, 'src'),
+    'jquery': 'jquery'
   },
-  extends: ['vue2', 'autoprefixer','sass']
+  extends: ['vue2', 'autoprefixer','sass'],
+  plugins: [
+    new webpack.ProvidePlugin({
+      jQuery: "jquery",
+      $: "jquery"
+    })
+  ]
 });
 
 module.exports = cooking.resolve();

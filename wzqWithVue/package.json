@@ -12,13 +12,13 @@
   "license": "ISC",
   "dependencies": {
     "vue": "^2.0.1",
-    "babel-polyfill": "*"
+    "babel-polyfill": "*",
+    "jquery": "^3.2.1"
   },
   "devDependencies": {
     "cooking-sass": "^0.5.0",
     "cooking-vue2": "*",
     "css-loader": "^0.28.1",
-    "jquery": "^3.2.1",
     "webpack": "^2.5.1"
   }
 }
