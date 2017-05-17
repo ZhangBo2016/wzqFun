@@ -4,12 +4,16 @@
     <chess ref="chess"></chess>
     <div class="operating-panel">
       <p id="model">
-        <a id="replay_btn" class="btn selected" href="#">新 局</a>
-        <a id="withAI_btn" class="btn" href="#">悔棋</a>
+        <a id="replay_btn" class="btn" href="#">新 局</a>
+        <a id="prev_btn" class="btn" href="#">悔棋</a>
       </p>
       <p>
-        <a id="black_btn" class="btn selected" href="#">黑 方</a>
+        <a id="black_btn" class="btn" href="#">黑 方</a>
         <a id="white_btn" class="btn" href="#">白 方</a>
+      </p>
+      <p>
+        <a id="persons" class="btn" href="#">人 人</a>
+        <a id="playWithAI" class="btn" href="#">人 机</a>
       </p>
         <p id="result_tips"></p>
     </div>
@@ -32,46 +36,45 @@
                     const id = $(this).attr("id");
                     const menu_Command = self.initOperationPanel();
                     menu_Command(id);
+                    $(this).addClass("selected").siblings().removeClass("selected");
                 })
         })
       },
      methods: {
           initOperationPanel: function(){
                 const self = this;
+                const chessEntity = self.$refs.chess;
+
                 const black_btn = {
                     execute: function(){
-                       const chessEntity = self.$refs.chess;
-                       chessEntity.players = ["player", "player"];
+                       // chessEntity.players = ["player", "player"];
                     }
                 };
                 const white_btn = {
                     execute: function(){
-                       const chessEntity = self.$refs.chess;
-                       chessEntity.players = ["player", "player"];
+                       // chessEntity.players = ["player", "player"];
                     }
                 };
-                const withPersons_btn = {
+                const persons = {
                     execute: function(){
-
+                        chessEntity.players = ["player", "player"];
                     }
                 };
-                const withAI_btn = {
+                const playWithAI = {
                     execute: function(){
-
+                      chessEntity.players = ["AI", "player"];
                     }
                 };
                 const replay_btn = {
                     execute: function(){
-                       const chessEntity = self.$refs.chess;
-                       chessEntity.players = ["player", "player"];
                        chessEntity.gameStart()
                     }
                 };
                 const map = {
                     black_btn: black_btn,
                     white_btn: white_btn,
-                    withPersons_btn: withPersons_btn,
-                    withAI_btn:withAI_btn,
+                    persons: persons,
+                    playWithAI:playWithAI,
                     replay_btn:replay_btn
                 };
 

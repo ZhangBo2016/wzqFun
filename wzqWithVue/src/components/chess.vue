@@ -24,16 +24,17 @@
                 BLACK_CHESS : -1,
                 WHITE_CHESS : 1,
                 LEFT : "black",
-                currrentColor:"black",
+                currentColor:"black",
                 RIGHT : "white",
                 isBlack: true,
                 isPlayerTurn: true,
                 players: ["player", "player"],
                 playDirector: null,
+                isGameStart: false,
             }
         },
         mounted: function(){
-            //中介者：职责 1.玩家轮换
+            //中介者：职责 1.玩家轮换 2.
             this.playDirector = this.playDirectorHandler();
             this.$nextTick(function(){
                 this.startLoad();
@@ -64,11 +65,10 @@
                 );
             },
             gameStart () {
+                this.isGameStart = true;
                 if (this.players[0] == "AI") {
-                    // AImoveChess();
-                    console.log("ai chess")
+                    this.AImoveChess();
                 }
-                // $(".operating-panel p a").addClass("disable");
             },
             hoverHandler(dom, behaveior){
                 const i = $(dom).index(), j = $(dom).parent().index(),
@@ -110,11 +110,12 @@
 
                 this.playDirector.receiverMessage("playerTurn") == "player" ? this.playerTurn = true : this.playerTurn = false;
 
-                if (this.playerTurn && this.chessArr[i][j] === this.NO_CHESS) {
+                if (this.playerTurn && this.isGameStart && this.chessArr[i][j] === this.NO_CHESS) {
                     this.hoverHandler(dom, "remove");
                     const color = this.playDirector.receiverMessage("color");
                     this.playChess(i, j, color);
                     this.playerWinOrNot(i, j);
+                    if(this.playDirector.receiverMessage("playerTurn") == "AI") this.AImoveChess()
                 }
             },
             playChess(i, j, color){
@@ -125,19 +126,14 @@
                 let operations = {};
                 const self = this;
                 operations.color = function () {
-                    let rep = self.currrentColor;
-                    if(self.players.indexOf("AI") < 0 ){
-                        self.currrentColor == self.LEFT ? self.currrentColor = self.RIGHT: self.currrentColor=self.LEFT;
-                    }else{
-
-                    }
+                    let rep = self.currentColor;
+                    self.currentColor == self.LEFT ? self.currentColor = self.RIGHT: self.currentColor=self.LEFT;
                     return rep
                 };
 
                 operations.playerTurn = (function () {
                     let index = 0;
                     return (function () {
-                        debugger
                         let rep = self.players[index];
                         index = (index+1)%2;
                         return rep
@@ -158,7 +154,7 @@
             },
             playerWinOrNot(i,j){
                 let nums = 1, /*连续棋子个数*/
-                    chessColor = this.currrentColor == this.RIGHT ? this.BLACK_CHESS: this.WHITE_CHESS, m, n; //currrentColor指下一次下棋的颜色
+                    chessColor = this.currentColor == this.RIGHT ? this.BLACK_CHESS: this.WHITE_CHESS, m, n; //currrentColor指下一次下棋的颜色
                 //y方向
                 for (m = j - 1; m >= 0; m--) {
                     if (this.chessArr[i][m] === chessColor) {
@@ -257,9 +253,226 @@
                 this.showResult();
             },
             showResult(){
-                const p = this.currrentColor = this.LEFT ? this.players[0] : this.player[1];
+                const p = this.currentColor = this.RIGHT ? this.players[0] : this.player[1];
                 $("#result_tips").html("恭喜"+ p +"获胜！");
-            }
+            },
+            gameOver () {
+                this.isGameStart = false;
+                $(".operating-panel a").removeClass("disable");
+                $("#replay_btn").html("开&nbsp;&nbsp;&nbsp;始");
+            },
+            AImoveChess() {
+                var maxX = 0,
+                    maxY = 0,
+                    maxWeight = 0,
+                    i, j, tem;
+                for (i = 14; i >= 0; i--) {
+                    for (j = 14; j >= 0; j--) {
+                        if (this.chessArr[i][j] !== this.NO_CHESS) {
+                            continue;
+                        }
+                        tem = this.computeWeight(i, j);
+                        if (tem > maxWeight) {
+                            maxWeight = tem;
+                            maxX = i;
+                            maxY = j;
+                        }
+                    }
+                };
+                const color = this.playDirector.receiverMessage("color");
+                this.playChess(maxX, maxY, color);
+                if ((maxWeight >= 100000 && maxWeight < 250000) || (maxWeight >= 500000)) {
+                    this.showResult();
+                    this.gameOver();
+                }
+            },
+            computeWeight(i, j) {
+                var weight = 14 - (Math.abs(i - 7) + Math.abs(j - 7)), //基于棋盘位置权重
+                    pointInfo = {},	//某点下子后连子信息
+                    chessColor = this.currentColor == this.RIGHT ? this.BLACK_CHESS: this.WHITE_CHESS; //currrentColor指下一次下棋的颜色
+                //x方向
+                pointInfo = this.putDirectX(i, j, chessColor);
+                weight += this.weightStatus(pointInfo.nums, pointInfo.side1, pointInfo.side2, true);//AI下子权重
+                pointInfo = this.putDirectX(i, j, -chessColor);
+                weight += this.weightStatus(pointInfo.nums, pointInfo.side1, pointInfo.side2, false);//player下子权重
+                //y方向
+                pointInfo = this.putDirectY(i, j, chessColor);
+                weight += this.weightStatus(pointInfo.nums, pointInfo.side1, pointInfo.side2, true);//AI下子权重
+                pointInfo = this.putDirectY(i, j, -chessColor);
+                weight += this.weightStatus(pointInfo.nums, pointInfo.side1, pointInfo.side2, false);//player下子权重
+                //左斜方向
+                pointInfo = this.putDirectXY(i, j, chessColor);
+                weight += this.weightStatus(pointInfo.nums, pointInfo.side1, pointInfo.side2, true);//AI下子权重
+                pointInfo = this.putDirectXY(i, j, -chessColor);
+                weight += this.weightStatus(pointInfo.nums, pointInfo.side1, pointInfo.side2, false);//player下子权重
+                //右斜方向
+                pointInfo = this.putDirectYX(i, j, chessColor);
+                weight += this.weightStatus(pointInfo.nums, pointInfo.side1, pointInfo.side2, true);//AI下子权重
+                pointInfo = this.putDirectYX(i, j, -chessColor);
+                weight += this.weightStatus(pointInfo.nums, pointInfo.side1, pointInfo.side2, false);//player下子权重
+                return weight;
+            },
+            //权重方案   独：两边为空可下子，单：一边为空
+            weightStatus(nums, side1, side2, isAI) {
+                var weight = 0;
+                switch (nums) {
+                    case 1:
+                        if (side1 && side2) {
+                            weight = isAI ? 15 : 10;	//独一
+                        }
+                        break;
+                    case 2:
+                        if (side1 && side2) {
+                            weight = isAI ? 100 : 50;	//独二
+                        }
+                        else if (side1 || side2) {
+                            weight = isAI ? 10 : 5;	//单二
+                        }
+                        break;
+                    case 3:
+                        if (side1 && side2) {
+                            weight = isAI ? 500 : 200;	//独三
+                        }
+                        else if (side1 || side2) {
+                            weight = isAI ? 30 : 20;	//单三
+                        }
+                        break;
+                    case 4:
+                        if (side1 && side2) {
+                            weight = isAI ? 5000 : 2000;	//独四
+                        }
+                        else if (side1 || side2) {
+                            weight = isAI ? 400 : 100;	//单四
+                        }
+                        break;
+                    case 5:
+                        weight = isAI ? 100000 : 10000;	//五
+                        break;
+                    default:
+                        weight = isAI ? 500000 : 250000;
+                        break;
+                }
+                return weight;
+            },
+            //下子到i，j X方向 结果: 多少连子 两边是否截断
+            putDirectX(i, j, chessColor) {
+                var m, n,
+                    nums = 1,
+                    side1 = false,
+                    side2 = false;
+                for (m = j - 1; m >= 0; m--) {
+                    if (this.chessArr[i][m] === chessColor) {
+                        nums++;
+                    }
+                    else {
+                        if (this.chessArr[i][m] === this.NO_CHESS) {
+                            side1 = true;
+                        }
+                        break;
+                    }
+                }
+                for (m = j + 1; m < 15; m++) {
+                    if (this.chessArr[i][m] === chessColor) {
+                        nums++;
+                    }
+                    else {
+                        if (this.chessArr[i][m] === this.NO_CHESS) {
+                            side2 = true;
+                        }
+                        break;
+                    }
+                }
+                return {"nums": nums, "side1": side1, "side2": side2};
+            },
+            //下子到i，j Y方向 结果
+            putDirectY(i, j, chessColor) {
+                var m, n,
+                        nums = 1,
+                        side1 = false,
+                        side2 = false;
+                for (m = i - 1; m >= 0; m--) {
+                    if (this.chessArr[m][j] === chessColor) {
+                        nums++;
+                    }
+                    else {
+                        if (this.chessArr[m][j] === this.NO_CHESS) {
+                            side1 = true;
+                        }
+                        break;
+                    }
+                }
+                for (m = i + 1; m < 15; m++) {
+                    if (this.chessArr[m][j] === chessColor) {
+                        nums++;
+                    }
+                    else {
+                        if (this.chessArr[m][j] === this.NO_CHESS) {
+                            side2 = true;
+                        }
+                        break;
+                    }
+                }
+                return {"nums": nums, "side1": side1, "side2": side2};
+            },
+            //下子到i，j XY方向 结果
+            putDirectXY(i, j, chessColor) {
+                var m, n,
+                        nums = 1,
+                        side1 = false,
+                        side2 = false;
+                for (m = i - 1, n = j - 1; m >= 0 && n >= 0; m--, n--) {
+                    if (this.chessArr[m][n] === chessColor) {
+                        nums++;
+                    }
+                    else {
+                        if (this.chessArr[m][n] === this.NO_CHESS) {
+                            side1 = true;
+                        }
+                        break;
+                    }
+                }
+                for (m = i + 1, n = j + 1; m < 15 && n < 15; m++, n++) {
+                    if (this.chessArr[m][n] === chessColor) {
+                        nums++;
+                    }
+                    else {
+                        if (this.chessArr[m][n] === this.NO_CHESS) {
+                            side2 = true;
+                        }
+                        break;
+                    }
+                }
+                return {"nums": nums, "side1": side1, "side2": side2};
+            },
+            putDirectYX(i, j, chessColor) {
+                var m, n,
+                        nums = 1,
+                        side1 = false,
+                        side2 = false;
+                for (m = i - 1, n = j + 1; m >= 0 && n < 15; m--, n++) {
+                    if (this.chessArr[m][n] === chessColor) {
+                        nums++;
+                    }
+                    else {
+                        if (this.chessArr[m][n] === this.NO_CHESS) {
+                            side1 = true;
+                        }
+                        break;
+                    }
+                }
+                for (m = i + 1, n = j - 1; m < 15 && n >= 0; m++, n--) {
+                    if (this.chessArr[m][n] === chessColor) {
+                        nums++;
+                    }
+                    else {
+                        if (this.chessArr[m][n] === this.NO_CHESS) {
+                            side2 = true;
+                        }
+                        break;
+                    }
+                }
+                return {"nums": nums, "side1": side1, "side2": side2};
+            },
         }
     }
 </script>
