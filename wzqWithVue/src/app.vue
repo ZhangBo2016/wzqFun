@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2>五子棋</h2>
+    <h2></h2>
     <chess ref="chess"></chess>
     <div class="operating-panel">
       <p id="model">
@@ -11,6 +11,7 @@
         <a id="black_btn" class="btn selected" href="#">黑 方</a>
         <a id="white_btn" class="btn" href="#">白 方</a>
       </p>
+        <p id="result_tips"></p>
     </div>
 
   </div>

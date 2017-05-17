@@ -19,7 +19,7 @@
             return {
                 posX: -1,
                 posY: -1,
-                chessArr: [], //��¼����
+                chessArr: [], //棋盘15*15
                 NO_CHESS: 0,
                 BLACK_CHESS : -1,
                 WHITE_CHESS : 1,
@@ -27,11 +27,13 @@
                 currrentColor:"black",
                 RIGHT : "white",
                 isBlack: true,
+                isPlayerTurn: true,
                 players: ["player", "player"],
                 playDirector: null,
             }
         },
         mounted: function(){
+            //中介者：职责 1.玩家轮换
             this.playDirector = this.playDirectorHandler();
             this.$nextTick(function(){
                 this.startLoad();
@@ -50,8 +52,7 @@
                     for (j = 0; j < 15; j++) {
                         self.chessArr[i][j] = self.NO_CHESS;
                     }
-                }
-                ;
+                };
 
                 $("td").hover(
                         function () {
@@ -61,8 +62,6 @@
                             self.hoverHandler(this, "remove");
                         }
                 );
-
-
             },
             gameStart () {
                 if (this.players[0] == "AI") {
@@ -109,10 +108,13 @@
                 const dom = e.target;
                 const i = $(dom).index(), j = $(dom).parent().index();
 
-                if (this.chessArr[i][j] === this.NO_CHESS) {
+                this.playDirector.receiverMessage("playerTurn") == "player" ? this.playerTurn = true : this.playerTurn = false;
+
+                if (this.playerTurn && this.chessArr[i][j] === this.NO_CHESS) {
                     this.hoverHandler(dom, "remove");
-                    this.playDirector.receiverMessage("color");
-                    this.playChess(i, j, this.currrentColor);
+                    const color = this.playDirector.receiverMessage("color");
+                    this.playChess(i, j, color);
+                    this.playerWinOrNot(i, j);
                 }
             },
             playChess(i, j, color){
@@ -123,14 +125,28 @@
                 let operations = {};
                 const self = this;
                 operations.color = function () {
+                    let rep = self.currrentColor;
                     if(self.players.indexOf("AI") < 0 ){
                         self.currrentColor == self.LEFT ? self.currrentColor = self.RIGHT: self.currrentColor=self.LEFT;
+                    }else{
+
                     }
+                    return rep
                 };
+
+                operations.playerTurn = (function () {
+                    let index = 0;
+                    return (function () {
+                        debugger
+                        let rep = self.players[index];
+                        index = (index+1)%2;
+                        return rep
+                    })
+                })();
 
                 const receiverMessage = function () {
                     const message = Array.prototype.shift.call(arguments);
-                    operations[message].apply(this, arguments)
+                    return operations[message].apply(this, arguments)
                 };
 
                 return {
@@ -139,6 +155,110 @@
             },
             AIplay(){
 
+            },
+            playerWinOrNot(i,j){
+                let nums = 1, /*连续棋子个数*/
+                    chessColor = this.currrentColor == this.RIGHT ? this.BLACK_CHESS: this.WHITE_CHESS, m, n; //currrentColor指下一次下棋的颜色
+                //y方向
+                for (m = j - 1; m >= 0; m--) {
+                    if (this.chessArr[i][m] === chessColor) {
+                        nums++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+                for (m = j + 1; m < 15; m++) {
+                    if (this.chessArr[i][m] === chessColor) {
+                        nums++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+                if (nums >= 5) {
+                    this.playerWin();
+                    return;
+                }
+                else {
+                    nums = 1;
+                }
+                //x方向
+                for (m = i - 1; m >= 0; m--) {
+                    if (this.chessArr[m][j] === chessColor) {
+                        nums++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+                for (m = i + 1; m < 15; m++) {
+                    if (this.chessArr[m][j] === chessColor) {
+                        nums++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+                if (nums >= 5) {
+                    this.playerWin();
+                    return;
+                }
+                else {
+                    nums = 1;
+                }
+                //左斜方向
+                for (m = i - 1, n = j - 1; m >= 0 && n >= 0; m--, n--) {
+                    if (this.chessArr[m][n] === chessColor) {
+                        nums++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+                for (m = i + 1, n = j + 1; m < 15 && n < 15; m++, n++) {
+                    if (this.chessArr[m][n] === chessColor) {
+                        nums++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+                if (nums >= 5) {
+                    this.playerWin();
+                    return;
+                }
+                else {
+                    nums = 1;
+                }
+                //右斜方向
+                for (m = i - 1, n = j + 1; m >= 0 && n < 15; m--, n++) {
+                    if (this.chessArr[m][n] === chessColor) {
+                        nums++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+                for (m = i + 1, n = j - 1; m < 15 && n >= 0; m++, n--) {
+                    if (this.chessArr[m][n] === chessColor) {
+                        nums++;
+                    }
+                    else {
+                        break;
+                    }
+                }
+                if (nums >= 5) {
+                    this.playerWin();
+                    return;
+                }
+            },
+            playerWin(){
+                this.showResult();
+            },
+            showResult(){
+                const p = this.currrentColor = this.LEFT ? this.players[0] : this.player[1];
+                $("#result_tips").html("恭喜"+ p +"获胜！");
             }
         }
     }
@@ -175,7 +295,7 @@
         border-top: 1px solid transparent;
     }
     }
-    /* ���� */
+    /* ���� */
     td.black {
         background: url(http://sandbox.runjs.cn/uploads/rs/102/r2dy3tyw/black.png) no-repeat 4px 4px;
     }
