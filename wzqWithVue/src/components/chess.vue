@@ -23,9 +23,9 @@
                 NO_CHESS: 0,
                 BLACK_CHESS : -1,
                 WHITE_CHESS : 1,
-                LEFT : "black",
                 currentColor:"black",
                 RIGHT : "white",
+                LEFT : "black",
                 isBlack: true,
                 isPlayerTurn: true,
                 players: ["player", "player"],
@@ -39,6 +39,11 @@
             this.$nextTick(function(){
                 this.startLoad();
             })
+        },
+        computed: {
+            recentColor: function(){
+                return (this.currentColor == this.LEFT ? this.RIGHT: this.LEFT)
+            },
         },
         methods: {
             setCurrentPos(td){
@@ -154,8 +159,9 @@
             },
             playerWinOrNot(i,j){
                 let nums = 1, /*连续棋子个数*/
-                    chessColor = this.currentColor == this.RIGHT ? this.BLACK_CHESS: this.WHITE_CHESS, m, n; //currrentColor指下一次下棋的颜色
+                    chessColor = this.recentColor == this.LEFT ? this.BLACK_CHESS: this.WHITE_CHESS, m, n; //currrentColor指下一次下棋的颜色
                 //y方向
+                debugger
                 for (m = j - 1; m >= 0; m--) {
                     if (this.chessArr[i][m] === chessColor) {
                         nums++;
@@ -253,7 +259,7 @@
                 this.showResult();
             },
             showResult(){
-                const p = this.currentColor = this.RIGHT ? this.players[0] : this.player[1];
+                const p = this.recentColor = this.LEFT ? this.players[0] : this.player[1];
                 $("#result_tips").html("恭喜"+ p +"获胜！");
             },
             gameOver () {
