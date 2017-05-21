@@ -53,10 +53,6 @@
             },
         },
         methods: {
-            setCurrentPos(td){
-                this.posX = $(td).index();
-                this.posY = $(td).parent().index();
-            },
             startLoad(){
                 const self = this;
                 let i, j;
@@ -161,14 +157,10 @@
                     receiverMessage: receiverMessage
                 }
             },
-            AIplay(){
-
-            },
             playerWinOrNot(i,j){
                 let nums = 1, /*连续棋子个数*/
                     chessColor = this.recentColor == this.LEFT ? this.BLACK_CHESS: this.WHITE_CHESS, m, n; //currrentColor指下一次下棋的颜色
                 //y方向
-                debugger
                 for (m = j - 1; m >= 0; m--) {
                     if (this.chessArr[i][m] === chessColor) {
                         nums++;
@@ -294,6 +286,7 @@
                 };
                 const color = this.playDirector.receiverMessage("color");
                 this.playChess(maxX, maxY, color);
+                this.playerWinOrNot(maxX,maxY)
                 if ((maxWeight >= 100000 && maxWeight < 250000) || (maxWeight >= 500000)) {
                     this.showResult();
                     this.gameOver();
