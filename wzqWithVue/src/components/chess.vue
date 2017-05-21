@@ -14,6 +14,13 @@
 </template>
 
 <script type="text/ecmascript-6">
+    /**
+    *@title: chess.vue
+    *@auto: zhang bo
+    *@date: 2017/5/21
+    *@desc: todo: 与用户交互的代码部分可做成API，使用父作用域的按钮控制
+    */
+
     export default {
         data:function(){
             return {
