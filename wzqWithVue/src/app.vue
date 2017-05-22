@@ -7,13 +7,13 @@
         <a id="replay_btn" class="btn" href="#">新 局</a>
         <a id="prev_btn" class="btn" href="#">悔棋</a>
       </p>
-      <p>
-        <a id="black_btn" class="btn" href="#">黑 方</a>
-        <a id="white_btn" class="btn" href="#">白 方</a>
-      </p>
+      <!--<p>-->
+        <!--<a id="black_btn" class="btn" href="#">黑 方</a>-->
+        <!--<a id="white_btn" class="btn" href="#">白 方</a>-->
+      <!--</p>-->
       <p>
         <a id="persons" class="btn" href="#">人 人</a>
-        <a id="playWithAI" class="btn" href="#">人 机</a>
+        <a id="playWithAI" class="btn selected" href="#">人 机</a>
       </p>
         <p id="result_tips"></p>
     </div>
@@ -65,8 +65,28 @@
                       chessEntity.players = ["AI", "player"];
                     }
                 };
+
                 const replay_btn = {
+                    ready: function(){ //策略模式
+                        const strategy = {
+                            players: function (dom) {
+                               debugger
+                            }
+                        }
+                        const menuHandler = function(){
+                            this.cache = []
+                        };
+                        const menu = new menuHandler();
+                        menuHandler.add(dom, "players")
+                        menuHandler.prototype.add = function(dom, behave){
+
+                        }
+                        menuHandler.prototype.start = function(){
+
+                        }
+                    },
                     execute: function(){
+
                        chessEntity.gameStart()
                     }
                 };
